@@ -1,5 +1,5 @@
 #!/bin/bash
-echo "Please set SYNAPSE_SERVER_NAME. Example: matrix.domain.com:"
+echo "Please set SYNAPSE_SERVER_NAME. Example: matrix.domain.com"
 read SYNAPSE_DOMAIN
 DIG_IP=$(getent hosts $SYNAPSE_DOMAIN | awk '{ print $1 }')
 IP=$(curl ifconfig.me)
