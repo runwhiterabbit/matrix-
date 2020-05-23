@@ -6,14 +6,14 @@ DIG_IP=$(getent ahostsv4 $SYNAPSE_DOMAIN | sed -n 's/ *STREAM.*//p')
 IP=$(curl ifconfig.me)
 DB_PASSWORD=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 12 | head -n 1)
 ADMIN_PASS=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 8 | head -n 1)
+docker-compose --file /opt/matrix/docker-compose.yml down &> /dev/null
 
-res1=$(ss -lnt | awk '$1 == "LISTEN" && $4 ~ ".80"');
+res1=$(ss -tnpl | grep ":80 " | awk '{print $4}' | sed -e 's/.*://');
 if [ "$res1" != '' ]; then echo "port 80 is in use, installation canceled" &&  exit 1
 fi
-res2=$(ss -lnt | awk '$1 == "LISTEN" && $4 ~ ".443"');
-if [ "$res1" != '' ]; then echo "port 443 is in use, installation canceled" &&  exit 1
+res2=$(ss -tnpl | grep ":443 " | awk '{print $4}' | sed -e 's/.*://');
+if [ "$res2" != '' ]; then echo "port 443 is in use, installation canceled" &&  exit 1
 fi
-
 if [ -z "$DIG_IP" ]; then echo Unable to resolve $SYNAPSE_DOMAIN. Installation aborted &&  exit 1
 fi
 if [ "$DIG_IP" != "$IP" ]; then echo  "DNS lookup for $SYNAPSE_DOMAIN resolved to $DIG_IP but didn't match local $IP"
@@ -101,8 +101,8 @@ services:
     labels:
       - traefik.enable=true
       - traefik.port=80
-      - traefik.entryPoint=https
-      - traefik.backend=admin
+#      - traefik.entryPoint=https
+#      - traefik.backend=admin
       - traefik.frontend.rule=Host:$SYNAPSE_DOMAIN; PathPrefixStrip:/admin/
   
   riotweb:
@@ -115,8 +115,8 @@ services:
     labels:
       - traefik.enable=true
       - traefik.port=80
-      - traefik.entryPoint=https
-      - traefik.backend=riotweb
+#      - traefik.entryPoint=https
+#      - traefik.backend=riotweb
       - traefik.frontend.rule=Host:$SYNAPSE_DOMAIN; PathPrefixStrip:/riot/
 
   synapse:
@@ -135,8 +135,8 @@ services:
     labels:
       - traefik.enable=true
       - traefik.port=8008
-      - traefik.entryPoint=https
-      - traefik.backend=synapse
+#      - traefik.entryPoint=https
+#      - traefik.backend=synapse
       - traefik.frontend.rule=Host:$SYNAPSE_DOMAIN
   
   db:
